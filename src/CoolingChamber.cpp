@@ -7,6 +7,7 @@
 #include <MsTimer2.h>
 #include "CoolingChamber.h"
 
+
 CoolingChamber::CoolingChamber(int pin, float tempTarget){
   _pin = pin;
   pinMode(_pin, OUTPUT);
@@ -30,13 +31,21 @@ void CoolingChamber::setTempTarger(float tempTarget){
   tempTarget = _tempTarget;
 }
 
-int CoolingChamber::getTempTarget(){
+float CoolingChamber::getTempTarget(){
   return _tempTarget;
 }
 
 void CoolingChamber::checkTemp(){
-  // Only used to check the functionality. To be deleted. 
+  // Only used to check the functionality. To be deleted.
   static boolean output = false ;
   digitalWrite(13, output);
   output = !output;
+}
+
+float CoolingChamber::getTemp(){
+  return getTempSensorData();
+}
+
+float CoolingChamber::getTempSensorData(){
+  //TODO: implement the sensor data
 }

@@ -11,10 +11,12 @@ class CoolingChamber{
     void start();
     void stop();
     void setTempTarger(float tempTarget);
-    int getTempTarget();
-    static void checkTemp();
+    float getTemp();
+    float getTempTarget();
 
   private:
+    static void checkTemp();
+    float getTempSensorData();
     float _tempTarget;
     int _pin;
 };
