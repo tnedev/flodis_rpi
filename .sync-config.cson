@@ -1,0 +1,18 @@
+remote:
+  host: "92.247.56.99"
+  user: "pi"
+  path: "~/code/flow/"
+behaviour:
+  uploadOnSave: false
+  syncDownOnOpen: true
+  forgetConsole: false
+  autoHideConsole: true
+  alwaysSyncAll: false
+option:
+  deleteFiles: false
+  exclude: [
+    ".sync-config.cson"
+    "node_modules"
+    "tmp"
+    "vendor"
+  ]
