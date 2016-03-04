@@ -4,10 +4,11 @@
  */
 
 #include "Arduino.h"
-#include <MsTimer2.h>
-#include <OneWire.h>
+#include "MsTimer2.h"
+#include "OneWire.h"
 #include "CoolingChamber.h"
 
+int CoolingChamber::_tempSensorPin = -1;
 
 CoolingChamber::CoolingChamber(int controlPin, int tempSensorPin, float tempTarget, float tempControlDelta){
   _controlPin = controlPin;
@@ -17,7 +18,6 @@ CoolingChamber::CoolingChamber(int controlPin, int tempSensorPin, float tempTarg
 
   pinMode(_controlPin, OUTPUT);
   MsTimer2::set(5000, checkTemp); // check the temperature at this time
-
   //TODO: Imlement the actual control of the chamber
 }
 
@@ -56,7 +56,7 @@ void CoolingChamber::setTempControlDelta(float newTempControlDelta){
 
 float CoolingChamber::getTempSensorData(){
   //returns the temperature from one tempSensor18S20 in DEG Celsius
-  // TODO: Add problem messages to MessageQ
+  // TODO: Add error messages to MessageQ
 
    static OneWire _tempSensor(_tempSensorPin);
    byte data[12];

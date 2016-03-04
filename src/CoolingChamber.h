@@ -11,7 +11,7 @@ class CoolingChamber{
     void start();
     void stop();
     void setTempTarger(float newTempTarget);
-    float getTemp();
+    static float getTemp();
     float getTempTarget();
     void setTempControlDelta(float newTempControlDelta);
     float getTempControlDelta();
@@ -20,11 +20,11 @@ class CoolingChamber{
 
   private:
     static void checkTemp();
-    float getTempSensorData();
+    static float getTempSensorData();
     float _tempTarget;
     float _tempControlDelta; // The maximum temperature difference between target and current temp before starting control
     int _controlPin;
-    int _tempSensorPin;
+    static int _tempSensorPin;
 };
 
 #endif
