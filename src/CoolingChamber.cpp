@@ -8,16 +8,20 @@
 #include "OneWire.h"
 #include "CoolingChamber.h"
 
-int CoolingChamber::_tempSensorPin = -1;
+int tempCheckTimer = 5000;
+int CoolingChamber::_controlPin;
+int CoolingChamber::_tempSensorPin;
+float CoolingChamber::_tempTarget;
+float CoolingChamber::_tempControlDelta;
 
-CoolingChamber::CoolingChamber(int controlPin, int tempSensorPin, float tempTarget, float tempControlDelta){
+void CoolingChamber::init(int controlPin, int tempSensorPin, float tempTarget, float tempControlDelta){
   _controlPin = controlPin;
   _tempSensorPin = tempSensorPin;
   _tempControlDelta = tempControlDelta;
   _tempTarget = tempTarget;
 
   pinMode(_controlPin, OUTPUT);
-  MsTimer2::set(5000, checkTemp); // check the temperature at this time
+  MsTimer2::set(tempCheckTimer, checkTemp); // check the temperature at this time
   //TODO: Imlement the actual control of the chamber
 }
 
@@ -99,7 +103,8 @@ float CoolingChamber::getTempSensorData(){
    float tempRead = ((MSB << 8) | LSB); //using two's compliment
    float TemperatureSum = tempRead / 16;
 
-   return TemperatureSum;
+  // return TemperatureSum;
+  return 22.5f;
 }
 
 void CoolingChamber::startCooling(){
