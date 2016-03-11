@@ -1,19 +1,19 @@
 /* Config.h is an configuration for all Arduino pins and communication commands,
 * Use it to set the pin numbers or define a new command.
- */
+*/
 
- #ifndef Config_h
- #define Config_h
+#ifndef Config_h
+#define Config_h
 
 // I2C RPi -> Arduino communication. Slave address of the Arduino
 const int SLAVE_ADDRESS = 0x04;
 
- /*
-    Arduino pinout configuration.
- */
+/*
+Arduino pinout configuration.
+*/
 
 const int bottles = 8;
- // Pins controlling the gas release valve
+// Pins controlling the gas release valve
 const int BOTTLE1_CONTROL_PINS[2] = {2,4};
 const int BOTTLE2_CONTROL_PINS[2] = {3,5};
 
@@ -31,4 +31,4 @@ const float TEMP_TARGET = 23.00f;
 const float TEMP_CONTROL_DELTA = 0.5f;
 
 
- #endif
+#endif

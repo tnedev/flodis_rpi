@@ -1,8 +1,8 @@
 /* Bottle.h is an interpretation of a bottle in the Flow machine.
- * Each bottle contains certain quantity of liquid, serving sizes and price.
- * The Bottle could serve drinks, do its maintance and add new physical bottle.
- * Written by Tihomir Nedev in Feb 2016
- */
+* Each bottle contains certain quantity of liquid, serving sizes and price.
+* The Bottle could serve drinks, do its maintance and add new physical bottle.
+* Written by Tihomir Nedev in Feb 2016
+*/
 
 #ifndef Bottle_h
 #define Bottle_h
@@ -10,7 +10,7 @@
 #include "Arduino.h"
 
 class Bottle{
-  public:
+public:
     Bottle(int controlPins[2], int bottleSelectorPin);
     void newBottle(int quantity, int servingSizes[5], float price[5]);
     int serve(int servingSize); // Serve a drink of size
@@ -24,7 +24,7 @@ class Bottle{
     boolean isEmpty();
 
 
-  private:
+private:
     int _controlPins[2];
     // There are two controling pins. Pin 1 for pushing the required drink size through the control valve.
     // Pin 2 for clearing out the pipe from leftover liquid.

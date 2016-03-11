@@ -6,7 +6,7 @@
 #include "Arduino.h"
 
 class CoolingChamber{
-  public:
+public:
     static void init();
     static void start();
     static void stop();
@@ -22,7 +22,7 @@ class CoolingChamber{
     static float currentTemp;
 
     static boolean _isCooling;
-    static boolean _isResting; 
+    static boolean _isResting;
     static float _tempTarget;
     static float _tempControlDelta; // The maximum temperature difference between target and current temp before starting control
     static int _controlPin;

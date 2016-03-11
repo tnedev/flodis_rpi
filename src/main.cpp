@@ -12,139 +12,167 @@ boolean canWrite = false;
 
 void setup(){
 
-  pinMode(13, OUTPUT);
-  CoolingChamber::init();
-  //CoolingChamber::start(); // Start the cooling process
+    pinMode(13, OUTPUT);
+    CoolingChamber::init();
+    //CoolingChamber::start(); // Start the cooling process
 
-  Serial.begin(115200);
-
-}
-
-
-void handleData(){
-  if (_data.startsWith(heartbeatMessage)){
-    getMessageResp(heartbeatMessage, 1);
-  }
-  else if(_data.startsWith(setTempTargetMessage)){
-    float temp_target = _data.substring(setTempTargetMessage.length()).toFloat()/100.0f;
-    CoolingChamber::setTempTarger(temp_target);
-    setMessageResp(setTempTargetMessage, int (temp_target*100));
-  }
-  else if (_data.startsWith(getTempMessage)){
-    int temp = int(CoolingChamber::getTempSensorData()*100);
-    getMessageResp(getTempMessage,temp);
-  }
-  else if(_data.startsWith(getBottleQuantityMessage)){
-    int bottle = _data.substring(getBottleQuantityMessage.length()).toInt();
-    int bottle_quantity = 200; //TODO: implement getting the quantity
-    if (bottle<=0 || bottle>bottles){
-      errorBadRequest();
-    }
-    else {
-      getMessageResp(getBottleQuantityMessage, bottle_quantity, bottle);
-    }
-  }
-  else if(_data.startsWith(setBottleQuantityMessage)){
-    int bottle = _data.substring(getBottleQuantityMessage.length(), getBottleQuantityMessage.length()+1).toInt();
-    if (bottle<=0 || bottle>bottles){
-      errorBadRequest();
-    }
-    else {
-      int quantity = _data.substring(getBottleQuantityMessage.length()+2).toInt();
-      setMessageResp(setBottleQuantityMessage, quantity, bottle);
-    }
-  }
-  else if(_data.startsWith(getPressureMessage)){
-    int pressure = 1230; //TODO: implement getting the real pressure
-    getMessageResp(getPressureMessage, pressure);
-  }
-  else if(_data.startsWith(serveDrinkMessage)){
-    int bottle = _data.substring(serveDrinkMessage.length(), serveDrinkMessage.length()+1).toInt();
-    if (bottle<=0 || bottle>bottles){
-      errorBadRequest();
-    }
-    else {
-      int quantity = _data.substring(serveDrinkMessage.length()+2).toInt();
-      // TODO: Call serving operation, if successfull send response, otherwise error
-      setMessageResp(serveDrinkMessage, quantity, bottle);
-    }
-  }
-  else if(_data.startsWith(checkForGlassMessage)){
-    int bottle = _data.substring(checkForGlassMessage.length()).toInt();
-    if (bottle<=0 || bottle>bottles){
-      errorBadRequest();
-    }
-    else {
-      int hasGlass = 0; //TODO: check for glass
-      getMessageResp(checkForGlassMessage, hasGlass, bottle);
-    }
-  }
-  else {
-    errorBadRequest();
-  }
+    Serial.begin(115200);
 
 }
 
 void refreshTimer(){
-  _lastTime = millis();
+    _lastTime = millis();
 }
 
 void timeoutCheck(){
-  long timer = millis()-_lastTime;
-  if(timer<0){
-    errorMessage("Timer overflow");
-  }
-  else if (timer>serialTimeout && canWrite){
-    canWrite = false;
-    _data = "";
-    Serial.flush();
-    errorMessage("Serial timeout");
-  }
-  else if(timer>30000){
-    refreshTimer();
-  }
+    long timer = millis()-_lastTime;
+    if(timer<0){
+        sendErrorMessage(errTimerOverflow);
+    }
+    else if (timer>serialTimeout && canWrite){
+        canWrite = false;
+        _data = "";
+        Serial.flush();
+        sendErrorMessage(errSerialTimeout);
+    }
+    else if(timer>30000){
+        refreshTimer();
+    }
+}
+
+void handleData(){
+    if (_data.startsWith(heartbeatMessage)){
+        sendSetMessageResp(heartbeatMessage,1);
+    }
+    // Set Temp Target
+    else if(_data.startsWith(setTempTargetMessage)){
+        int temp_target_int = *splitData(_data);
+        float temp_target;
+        if (temp_target_int>=0){ // check if the message was coorect
+            temp_target = float(temp_target_int)/100.0; // convert to float
+            if(temp_target>0.0f && temp_target<40.0f){ // check if the value is within range
+                CoolingChamber::setTempTarger(temp_target); // if the value is fine, set the new value and send response
+                sendSetMessageResp(setTempTargetMessage, int (temp_target*100));
+            }
+            else{
+                sendErrorMessage(errBadValue); // Wrong value range
+            }
+        }
+        else {
+            sendErrorMessage(errBadRequestValue); // bad request
+        }
+    }
+    // get temperature
+    else if (_data.startsWith(getTempMessage)){
+        int temp = int(CoolingChamber::getTempSensorData()*100);
+        sendGetMessageResp(getTempMessage,temp);
+    }
+    else if (_data.startsWith(getTempTargetMessage)){
+        sendGetMessageResp(getTempTargetMessage,int(CoolingChamber::getTempTarget()*100.0));
+    }
+    // get quantity of a bottle
+    else if(_data.startsWith(getBottleQuantityMessage)){
+        int bottle = *splitData(_data);
+        int bottle_quantity = 200; //TODO: implement getting the quantity
+        if (bottle<=0 || bottle>bottles){ // check for correct message
+            sendErrorMessage(errBadRequestValue);
+        }
+        else {
+            sendGetMessageResp(getBottleQuantityMessage, bottle_quantity, bottle);
+        }
+    }
+    // set the quantity of a bottle
+    else if(_data.startsWith(setBottleQuantityMessage)){
+        int *data = splitData(_data); // returns the pointer to int array
+        int bottle = *data; // get the value of the first element
+        int quantity = *(data+1); // get the value of the second element
+        Serial.println(bottle);
+        Serial.println(quantity);
+        if (bottle<=0 || bottle>bottles || quantity<0){ // check if values are fine
+            sendErrorMessage(errBadRequestValue);
+        }
+        else if (quantity>2000) { // cant sent this much quantity
+            sendErrorMessage(errBadValue);
+        }
+        else{
+            sendSetMessageResp(setBottleQuantityMessage, quantity, bottle);
+        }
+    }
+    // get the pressure
+    else if(_data.startsWith(getPressureMessage)){
+        int pressure = 1230; //TODO: implement getting the real pressure
+        sendGetMessageResp(getPressureMessage, pressure);
+    }
+    // serve a drink
+    else if(_data.startsWith(serveDrinkMessage)){
+        int *data = splitData(_data);
+        int bottle = *data;
+        int quantity = *(data+1);
+        if (bottle<=0 || bottle>bottles || quantity<=0 || quantity>2000){ // check the values
+            sendErrorMessage(errBadRequestValue);
+        }
+        else {
+            // TODO: Call serving operation, if successfull send response, otherwise error
+            sendSetMessageResp(serveDrinkMessage, quantity, bottle);
+        }
+    }
+    // check for glass
+    else if(_data.startsWith(checkForGlassMessage)){
+        int bottle = *splitData(_data);
+        if (bottle<=0 || bottle>bottles){
+            sendErrorMessage(errBadRequestValue);
+        }
+        else {
+            int hasGlass = 0; //TODO: check for glass
+            sendGetMessageResp(checkForGlassMessage, hasGlass, bottle);
+        }
+    }
+    else {
+        sendErrorMessage(errBadRequestValue);
+    }
+
 }
 
 void serialEvent(){
-  while(Serial.available()){
-      char charData = Serial.read();
-      timeoutCheck(); // check for timeout
-      if( (charData == startByte) && (_data=="") && !canWrite){
-          canWrite = true;
-          refreshTimer();
-      }
-      else if( (charData == startByte) && (_data!="")){
-        /*  If you trying to write to non-empty buffer, close
-        *   the message and empty the buffer String. Send error
-        *   message to the RPi
-        */
-          canWrite = false;
-          _data = "";
-          Serial.flush();
-          errorMessage("Can't start on non-empty buffer");
-      }
-      else if( (charData == endByte) && (_data!="") && canWrite){
-          canWrite = false; // stop filling the data buffer when receive endByte
-          handleData();
-          _data = ""; // empty the data buffer after handling it
-      }
-      else if( (charData == endByte) && (_data=="") && canWrite){
-        errorMessage("Can't close empty buffer");
-      }
+    while(Serial.available()){
+        char charData = Serial.read();
+        timeoutCheck(); // check for timeout
+        if( (charData == startByte) && (_data=="") && !canWrite){
+            canWrite = true;
+            refreshTimer();
+        }
+        else if( (charData == startByte) && (_data!="")){
+            /*  If you trying to write to non-empty buffer, close
+            *   the message and empty the buffer String. Send error
+            *   message to the RPi
+            */
+            canWrite = false;
+            _data = "";
+            Serial.flush();
+            sendErrorMessage(errNonEmptyBuffer);
+        }
+        else if( (charData == endByte) && (_data!="") && canWrite){
+            canWrite = false; // stop filling the data buffer when receive endByte
+            handleData();
+            _data = ""; // empty the data buffer after handling it
+        }
+        else if( (charData == endByte) && (_data=="") && canWrite){
+            sendErrorMessage(errCloseEmptyBuffer);
+        }
 
-      else if( (charData != startByte) && (!canWrite)){
-        errorMessage("Can't write to buffer before start byte");
-      }
-      else if( (charData != startByte) && (canWrite) ){
-          _data+=String(charData);
-      }
+        else if( (charData != startByte) && (!canWrite)){
+            sendErrorMessage(errNoStartByte);
+        }
+        else if( (charData != startByte) && (canWrite) ){
+            _data+=String(charData);
+        }
 
-  }
+    }
 
 }
 
 void loop(){
 
-  timeoutCheck(); // Clean message data if timeout
+    timeoutCheck(); // Clean message data if timeout
 
 }
