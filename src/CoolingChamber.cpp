@@ -7,22 +7,26 @@
 #include "MsTimer2.h"
 #include "OneWire.h"
 #include "CoolingChamber.h"
+#include "Config.h"
 
-int tempCheckTimer = 5000;
+int tempCheckTimer = CHECK_TEMP_CONTROL;
 int CoolingChamber::_controlPin;
 int CoolingChamber::_tempSensorPin;
 float CoolingChamber::_tempTarget;
 float CoolingChamber::_tempControlDelta;
+float CoolingChamber::currentTemp;
+boolean CoolingChamber::_isCooling;
+boolean CoolingChamber::_isResting;
 
-void CoolingChamber::init(int controlPin, int tempSensorPin, float tempTarget, float tempControlDelta){
-  _controlPin = controlPin;
-  _tempSensorPin = tempSensorPin;
-  _tempControlDelta = tempControlDelta;
-  _tempTarget = tempTarget;
+void CoolingChamber::init(){
+  _controlPin = COOLING_CHAMBER_CONTROL_PIN;
+  _tempSensorPin = TEMP_SENSOR_PIN;
+  _tempControlDelta = TEMP_CONTROL_DELTA;
+  _tempTarget = TEMP_TARGET;
 
+  currentTemp = getTempSensorData();
   pinMode(_controlPin, OUTPUT);
   MsTimer2::set(tempCheckTimer, checkTemp); // check the temperature at this time
-  //TODO: Imlement the actual control of the chamber
 }
 
 void CoolingChamber::start(){
@@ -31,6 +35,9 @@ void CoolingChamber::start(){
 
 void CoolingChamber::stop(){
   MsTimer2::stop();
+  stopCooling();
+  _isCooling = false;
+  _isResting = false;
 }
 
 void CoolingChamber::setTempTarger(float newTempTarget){
@@ -43,11 +50,23 @@ float CoolingChamber::getTempTarget(){
 
 void CoolingChamber::checkTemp(){
   // Implement the control here
-
-}
-
-float CoolingChamber::getTemp(){
-  return getTempSensorData();
+  currentTemp = getTempSensorData();
+  if (currentTemp >= (_tempTarget + ( _tempControlDelta/2))){
+    startCooling();
+    if(!_isCooling){
+      _isCooling = true;
+      _isResting = false;
+      Serial.println("Started Cooling Process");
+    }
+  }
+  else if (currentTemp < ( _tempTarget -( _tempControlDelta/2))){
+    stopCooling();
+    if(!_isResting){
+      _isCooling = false;
+      _isResting = true;
+      Serial.println("Stopped Cooling Process");
+    }
+  }
 }
 
 float CoolingChamber::getTempControlDelta(){
@@ -103,8 +122,15 @@ float CoolingChamber::getTempSensorData(){
    float tempRead = ((MSB << 8) | LSB); //using two's compliment
    float TemperatureSum = tempRead / 16;
 
-  // return TemperatureSum;
-  return 22.5f;
+   if (TemperatureSum >-9.99f && TemperatureSum < 45.00f){
+     Serial.print("Temperature is: ");
+     Serial.println(TemperatureSum);
+     return TemperatureSum;
+   }
+   else {
+     return ERROR_TEMP;
+     Serial.println("Temperature sensor problem");
+   }
 }
 
 void CoolingChamber::startCooling(){
