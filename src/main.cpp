@@ -27,108 +27,147 @@ void refreshTimer(){
 void timeoutCheck(){
     long timer = millis()-_lastTime;
     if(timer<0){
-        sendErrorMessage(errTimerOverflow);
+        sendErrorMessage(ERR_TIME_OVERFLOW);
     }
-    else if (timer>serialTimeout && canWrite){
+    else if (timer>SERIAL_TIMEOUT && canWrite){
         canWrite = false;
         _data = "";
         Serial.flush();
-        sendErrorMessage(errSerialTimeout);
+        sendErrorMessage(ERR_SERIAL_TIMEOUT);
     }
-    else if(timer>30000){
+    else if(timer>SERIAL_REFRESH_TIMER){
         refreshTimer();
     }
 }
 
 void handleData(){
-    if (_data.startsWith(heartbeatMessage)){
-        sendSetMessageResp(heartbeatMessage,1);
+    int commands[10];
+
+    if (_data.startsWith(HEARTBEAT_MSG)){
+        sendSetMessageResp(HEARTBEAT_MSG, HEARTBEAT_VAL);
     }
     // Set Temp Target
-    else if(_data.startsWith(setTempTargetMessage)){
-        int temp_target_int = *splitData(_data);
-        float temp_target;
-        if (temp_target_int>=0){ // check if the message was coorect
-            temp_target = float(temp_target_int)/100.0; // convert to float
-            if(temp_target>0.0f && temp_target<40.0f){ // check if the value is within range
-                CoolingChamber::setTempTarger(temp_target); // if the value is fine, set the new value and send response
-                sendSetMessageResp(setTempTargetMessage, int (temp_target*100));
-            }
-            else{
-                sendErrorMessage(errBadValue); // Wrong value range
-            }
+    else if(_data.startsWith(SET_TEMP_TARGET_MSG)){
+        // parse and validate based on integers between &
+        if (!parseCommandParams(_data, SET_TEMP_TARGET_MSG, commands, 10)) {
+             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+             return;
         }
-        else {
-            sendErrorMessage(errBadRequestValue); // bad request
+
+        // the command was with a  valid structure
+        int temp_target = commands[0];
+        if (temp_target <= 0) {
+            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+            return;
         }
+
+        if (temp_target<0 && temp_target>4000) {
+            sendErrorMessage(ERR_BAD_VALUE); // Wrong value range
+            return;
+        }
+
+        // if the value is fine, set the new value and send response
+        CoolingChamber::setTempTarger(temp_target/100.0);
+        sendSetMessageResp(SET_TEMP_TARGET_MSG, int (temp_target));
     }
     // get temperature
-    else if (_data.startsWith(getTempMessage)){
+    else if (_data.startsWith(GET_TEMP_MSG)){
         int temp = int(CoolingChamber::getTempSensorData()*100);
-        sendGetMessageResp(getTempMessage,temp);
+        sendGetMessageResp(GET_TEMP_MSG,temp);
     }
-    else if (_data.startsWith(getTempTargetMessage)){
-        sendGetMessageResp(getTempTargetMessage,int(CoolingChamber::getTempTarget()*100.0));
+    // get temperature target
+    else if (_data.startsWith(GET_TEMP_TARGET_MSG)){
+        sendGetMessageResp(GET_TEMP_TARGET_MSG,int(CoolingChamber::getTempTarget()*100.0));
     }
     // get quantity of a bottle
-    else if(_data.startsWith(getBottleQuantityMessage)){
-        int bottle = *splitData(_data);
+    else if(_data.startsWith(GET_BOTTLE_QUANT_MSG)){
+        // parse and validate based on integers between &
+        if (!parseCommandParams(_data, GET_BOTTLE_QUANT_MSG, commands, 10)) {
+             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+             return;
+        }
+
+        int bottle = commands[0];
+        if (bottle<=0 || bottle>BOTTLES){ // check for correct message
+            sendErrorMessage(ERR_BAD_REQUEST_VAL);
+            return;
+        }
+
         int bottle_quantity = 200; //TODO: implement getting the quantity
-        if (bottle<=0 || bottle>bottles){ // check for correct message
-            sendErrorMessage(errBadRequestValue);
-        }
-        else {
-            sendGetMessageResp(getBottleQuantityMessage, bottle_quantity, bottle);
-        }
+        sendGetMessageResp(GET_BOTTLE_QUANT_MSG, bottle_quantity, bottle);
     }
     // set the quantity of a bottle
-    else if(_data.startsWith(setBottleQuantityMessage)){
-        int *data = splitData(_data); // returns the pointer to int array
-        int bottle = *data; // get the value of the first element
-        int quantity = *(data+1); // get the value of the second element
+    else if(_data.startsWith(SET_BOTTLE_QUANT_MSG)){
+        // parse and validate based on integers between &
+        if (!parseCommandParams(_data, SET_BOTTLE_QUANT_MSG, commands, 10)) {
+             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+             return;
+        }
+
+        int bottle = commands[0]; // get the value of the first element
+        int quantity = commands[1]; // get the value of the second element§
         Serial.println(bottle);
         Serial.println(quantity);
-        if (bottle<=0 || bottle>bottles || quantity<0){ // check if values are fine
-            sendErrorMessage(errBadRequestValue);
+
+        if (bottle<=0 || bottle>BOTTLES || quantity<0){ // check if values are fine
+            sendErrorMessage(ERR_BAD_REQUEST_VAL);
+            return;
         }
-        else if (quantity>2000) { // cant sent this much quantity
-            sendErrorMessage(errBadValue);
+
+        if (quantity>2000) { // cant sent this much quantity
+            sendErrorMessage(ERR_BAD_VALUE);
+            return;
         }
-        else{
-            sendSetMessageResp(setBottleQuantityMessage, quantity, bottle);
-        }
+
+        sendSetMessageResp(SET_BOTTLE_QUANT_MSG, quantity, bottle);
     }
     // get the pressure
-    else if(_data.startsWith(getPressureMessage)){
+    else if(_data.startsWith(GET_PRESSURE_MSG)){
         int pressure = 1230; //TODO: implement getting the real pressure
-        sendGetMessageResp(getPressureMessage, pressure);
+        sendGetMessageResp(GET_PRESSURE_MSG, pressure);
     }
     // serve a drink
-    else if(_data.startsWith(serveDrinkMessage)){
-        int *data = splitData(_data);
-        int bottle = *data;
-        int quantity = *(data+1);
-        if (bottle<=0 || bottle>bottles || quantity<=0 || quantity>2000){ // check the values
-            sendErrorMessage(errBadRequestValue);
+    else if(_data.startsWith(PREV_DRINK_MSG)){
+        // parse and validate based on integers between &
+        if (!parseCommandParams(_data, PREV_DRINK_MSG, commands, 10)) {
+             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+             return;
         }
-        else {
-            // TODO: Call serving operation, if successfull send response, otherwise error
-            sendSetMessageResp(serveDrinkMessage, quantity, bottle);
+
+        int bottle = commands[0]; // get the value of the first element
+        int quantity = commands[1]; // get the value of the second element§
+        if (bottle<=0 || bottle>BOTTLES || quantity<=0){ // check the values
+            sendErrorMessage(ERR_BAD_REQUEST_VAL);
+            return;
         }
+
+        if (quantity>2000) { // cant sent this much quantity
+            sendErrorMessage(ERR_BAD_VALUE);
+            return;
+        }
+
+        sendSetMessageResp(PREV_DRINK_MSG, quantity, bottle);
     }
     // check for glass
-    else if(_data.startsWith(checkForGlassMessage)){
-        int bottle = *splitData(_data);
-        if (bottle<=0 || bottle>bottles){
-            sendErrorMessage(errBadRequestValue);
+    else if(_data.startsWith(CHECK_GLASS_MSG)){
+        // parse and validate based on integers between &
+        if (!parseCommandParams(_data, PREV_DRINK_MSG, commands, 10)) {
+             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+             return;
         }
-        else {
-            int hasGlass = 0; //TODO: check for glass
-            sendGetMessageResp(checkForGlassMessage, hasGlass, bottle);
+
+        int bottle = commands[0]; // get the value of the first element
+        if (bottle<=0 || bottle>BOTTLES){
+            sendErrorMessage(ERR_BAD_REQUEST_VAL);
+            return;
         }
+
+        int hasGlass = 0; //TODO: check for glass
+        sendGetMessageResp(CHECK_GLASS_MSG, hasGlass, bottle);
     }
+    // unrecognized initial/function command
     else {
-        sendErrorMessage(errBadRequestValue);
+        sendErrorMessage(ERR_BAD_REQUEST_VAL);
     }
 
 }
@@ -137,11 +176,11 @@ void serialEvent(){
     while(Serial.available()){
         char charData = Serial.read();
         timeoutCheck(); // check for timeout
-        if( (charData == startByte) && (_data=="") && !canWrite){
+        if( (charData == START_BYTE) && (_data=="") && !canWrite){
             canWrite = true;
             refreshTimer();
         }
-        else if( (charData == startByte) && (_data!="")){
+        else if( (charData == START_BYTE) && (_data!="")){
             /*  If you trying to write to non-empty buffer, close
             *   the message and empty the buffer String. Send error
             *   message to the RPi
@@ -149,21 +188,21 @@ void serialEvent(){
             canWrite = false;
             _data = "";
             Serial.flush();
-            sendErrorMessage(errNonEmptyBuffer);
+            sendErrorMessage(ERR_NON_EMPTY_BUFF);
         }
-        else if( (charData == endByte) && (_data!="") && canWrite){
-            canWrite = false; // stop filling the data buffer when receive endByte
+        else if( (charData == END_BYTE) && (_data!="") && canWrite){
+            canWrite = false; // stop filling the data buffer when receive END_BYTE
             handleData();
             _data = ""; // empty the data buffer after handling it
         }
-        else if( (charData == endByte) && (_data=="") && canWrite){
-            sendErrorMessage(errCloseEmptyBuffer);
+        else if( (charData == END_BYTE) && (_data=="") && canWrite){
+            sendErrorMessage(ERR_CLOSE_EMPTY_BUFF);
         }
 
-        else if( (charData != startByte) && (!canWrite)){
-            sendErrorMessage(errNoStartByte);
+        else if( (charData != START_BYTE) && (!canWrite)){
+            sendErrorMessage(ERR_NO_START_BYTE);
         }
-        else if( (charData != startByte) && (canWrite) ){
+        else if( (charData != START_BYTE) && (canWrite) ){
             _data+=String(charData);
         }
 

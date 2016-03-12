@@ -12,7 +12,7 @@ const int SLAVE_ADDRESS = 0x04;
 Arduino pinout configuration.
 */
 
-const int bottles = 8;
+const int BOTTLES = 8;
 // Pins controlling the gas release valve
 const int BOTTLE1_CONTROL_PINS[2] = {2,4};
 const int BOTTLE2_CONTROL_PINS[2] = {3,5};
