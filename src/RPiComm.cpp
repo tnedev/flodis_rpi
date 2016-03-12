@@ -55,6 +55,7 @@ bool parseCommandParams(String data_str, String init_command, int results[], int
     */
 
     String command = data_str.substring(init_command.length() + 1);
+    // inits everything in the awway to -1
     initParsedCommandArray(results, arr_length);
 
     int i_res = 0;
@@ -62,7 +63,7 @@ bool parseCommandParams(String data_str, String init_command, int results[], int
     unsigned int j_comm_start_reading = 0;
     boolean error = false;
 
-    do {
+    while (j_comm < command.length() && i_res < arr_length && !error) {
         char curr_char = command.charAt(j_comm);
 
         if (curr_char != SPLIT_BYTE) {
@@ -72,6 +73,7 @@ bool parseCommandParams(String data_str, String init_command, int results[], int
             }
             // if it is simply a digit ... keep reading
         } else {
+            // this is a split & here
             if (j_comm_start_reading == j_comm) {
                 // a separator symbol without a value that is separates .. error
                 error = true;
@@ -92,7 +94,23 @@ bool parseCommandParams(String data_str, String init_command, int results[], int
 
         //increment the command iterator
         j_comm = j_comm + 1;
-    }   while (j_comm < command.length() && i_res < 10 && !error);
+    }
+
+    if (!error) {
+        // everything was OK up to now however...
+
+        if (j_comm_start_reading == j_comm || i_res == arr_length) {
+            // we ended with a split & not followed by int or we reached the end of
+            // our command buffer
+            error = true;
+        } else {
+            // there is an end integer that needs to be taken care of
+            String str = command.substring(j_comm_start_reading, j_comm);
+            int curr_val = str.toInt();
+            // assign to the array with the results
+            results[i_res] = curr_val;
+        }
+    }
 
     if (error) {
         initParsedCommandArray(results, arr_length);
