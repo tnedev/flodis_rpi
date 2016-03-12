@@ -43,7 +43,6 @@ void sendSetMessageResp(String setting, int value, int extrValue);
 void sendGetMessageResp(String get_message, int value);
 void sendGetMessageResp(String get_message, int value, int extrValue);
 void sendLogMessage(String message);
-int *splitData(String data);
 bool parseCommandParams(String data_str, String init_command, int results[], int arr_length);
 
 #endif
