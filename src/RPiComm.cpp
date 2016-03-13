@@ -116,5 +116,8 @@ bool parseCommandParams(String data_str, String init_command, int results[], int
         initParsedCommandArray(results, arr_length);
     }
 
-    return error;
+    // if there is no error (i.e. error is false) we want to return true for
+    // "success"; vice-versa ... if there is an error, return retrun false for
+    // "failure"
+    return !error;
 }
