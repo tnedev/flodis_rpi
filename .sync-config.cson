@@ -9,7 +9,7 @@ behaviour:
   autoHideConsole: true
   alwaysSyncAll: false
 option:
-  deleteFiles: false
+  deleteFiles: true
   exclude: [
     ".sync-config.cson"
     "node_modules"

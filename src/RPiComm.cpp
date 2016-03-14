@@ -54,7 +54,7 @@ bool parseCommandParams(String data_str, String init_command, int results[], int
     * The method returns false if there was an error and true if there was no error
     */
 
-    String command = data_str.substring(init_command.length() + 1);
+    String command = data_str.substring(init_command.length());
     // inits everything in the awway to -1
     initParsedCommandArray(results, arr_length);
 

@@ -50,8 +50,8 @@ void handleData(){
     else if(_data.startsWith(SET_TEMP_TARGET_MSG)){
         // parse and validate based on integers between &
         if (!parseCommandParams(_data, SET_TEMP_TARGET_MSG, commands, 10)) {
-             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
-             return;
+            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+            return;
         }
 
         // the command was with a  valid structure
@@ -83,8 +83,8 @@ void handleData(){
     else if(_data.startsWith(GET_BOTTLE_QUANT_MSG)){
         // parse and validate based on integers between &
         if (!parseCommandParams(_data, GET_BOTTLE_QUANT_MSG, commands, 10)) {
-             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
-             return;
+            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+            return;
         }
 
         int bottle = commands[0];
@@ -100,8 +100,8 @@ void handleData(){
     else if(_data.startsWith(SET_BOTTLE_QUANT_MSG)){
         // parse and validate based on integers between &
         if (!parseCommandParams(_data, SET_BOTTLE_QUANT_MSG, commands, 10)) {
-             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
-             return;
+            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+            return;
         }
 
         int bottle = commands[0]; // get the value of the first element
@@ -130,8 +130,8 @@ void handleData(){
     else if(_data.startsWith(PREV_DRINK_MSG)){
         // parse and validate based on integers between &
         if (!parseCommandParams(_data, PREV_DRINK_MSG, commands, 10)) {
-             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
-             return;
+            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+            return;
         }
 
         int bottle = commands[0]; // get the value of the first element
@@ -152,8 +152,8 @@ void handleData(){
     else if(_data.startsWith(CHECK_GLASS_MSG)){
         // parse and validate based on integers between &
         if (!parseCommandParams(_data, PREV_DRINK_MSG, commands, 10)) {
-             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
-             return;
+            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+            return;
         }
 
         int bottle = commands[0]; // get the value of the first element
