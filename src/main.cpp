@@ -14,6 +14,7 @@ void setup(){
 
     pinMode(13, OUTPUT);
     CoolingChamber::init();
+    Bottle::init();
     //CoolingChamber::start(); // Start the cooling process
 
     Serial.begin(115200);
@@ -93,7 +94,7 @@ void handleData(){
             return;
         }
 
-        int bottle_quantity = 200; //TODO: implement getting the quantity
+        int bottle_quantity = Bottle::getQuantity(bottle);
         sendGetMessageResp(GET_BOTTLE_QUANT_MSG, bottle_quantity, bottle);
     }
     // set the quantity of a bottle
@@ -106,20 +107,50 @@ void handleData(){
 
         int bottle = commands[0]; // get the value of the first element
         int quantity = commands[1]; // get the value of the second element§
-        Serial.println(bottle);
-        Serial.println(quantity);
 
         if (bottle<=0 || bottle>BOTTLES || quantity<0){ // check if values are fine
             sendErrorMessage(ERR_BAD_REQUEST_VAL);
             return;
         }
 
-        if (quantity>2000) { // cant sent this much quantity
+        if (quantity>MAX_QUANTITY) { // cant sent this much quantity
             sendErrorMessage(ERR_BAD_VALUE);
             return;
         }
 
-        sendSetMessageResp(SET_BOTTLE_QUANT_MSG, quantity, bottle);
+        if(Bottle::setQuantity(bottle, quantity)){
+            sendSetMessageResp(SET_BOTTLE_QUANT_MSG, quantity, bottle);
+        }
+        else {
+            sendErrorMessage(ERR_BAD_VALUE);
+        }
+    }
+    else if(_data.startsWith(NEW_BOTTLE_MSG)){
+        // parse and validate based on integers between &
+        if (!parseCommandParams(_data, NEW_BOTTLE_MSG, commands, 10)) {
+            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+            return;
+        }
+
+        int bottle = commands[0]; // get the value of the first element
+        int quantity = commands[1]; // get the value of the second element§
+
+        if (bottle<=0 || bottle>BOTTLES || quantity<0){ // check if values are fine
+            sendErrorMessage(ERR_BAD_REQUEST_VAL);
+            return;
+        }
+
+        if (quantity>MAX_QUANTITY) { // cant sent this much quantity
+            sendErrorMessage(ERR_BAD_VALUE);
+            return;
+        }
+
+        if(Bottle::newBottle(bottle, quantity)){
+            sendSetMessageResp(NEW_BOTTLE_MSG, quantity, bottle);
+        }
+        else {
+            sendErrorMessage(ERR_BAD_VALUE);
+        }
     }
     // get the pressure
     else if(_data.startsWith(GET_PRESSURE_MSG)){
@@ -141,12 +172,16 @@ void handleData(){
             return;
         }
 
-        if (quantity>2000) { // cant sent this much quantity
+        if (quantity>MAX_QUANTITY) { // cant sent this much quantity
             sendErrorMessage(ERR_BAD_VALUE);
             return;
         }
-
-        sendSetMessageResp(PREV_DRINK_MSG, quantity, bottle);
+        if(Bottle::serve(bottle, quantity)){
+            sendSetMessageResp(PREV_DRINK_MSG, quantity, bottle);
+        }
+        else {
+            sendErrorMessage(ERR_BAD_VALUE);
+        }
     }
     // check for glass
     else if(_data.startsWith(CHECK_GLASS_MSG)){
@@ -162,7 +197,7 @@ void handleData(){
             return;
         }
 
-        int hasGlass = 1; //TODO: check for glass
+        int hasGlass = Bottle::checkForGlass(bottle);
         sendGetMessageResp(CHECK_GLASS_MSG, hasGlass, bottle);
     }
     // unrecognized initial/function command

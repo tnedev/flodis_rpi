@@ -1,32 +1,80 @@
 /* Bottle.cpp is an interpretation of a bottle in the Flow machine.
-* Each bottle contains certain quantity of liquid, serving sizes and price.
+* Each bottle contains certain quantity of liquid.
 * The Bottle could serve drinks, do its maintance and add new physical bottle.
-* Bottle:Bottle() sets up the workings behind.
-* Call Bottle:newBottle(int quantity, int servingSizes[5], float price[5]) for adding a drink bottle
 * Written by Tihomir Nedev in Feb 2016
 */
 
 #include "Arduino.h"
 #include "Bottle.h"
 
-Bottle::Bottle(int controlPins[2], int bottleSelectorPin){
+int Bottle::_bottleQuantity[BOTTLES];
 
-    _controlPins[0] = controlPins[0];
-    _controlPins[1] = controlPins[1];
-    _bottleSelectorPin = bottleSelectorPin;
+void Bottle::init(){
 
-    pinMode(_controlPins[0], OUTPUT);
-    pinMode(_controlPins[1], OUTPUT);
-    pinMode(_bottleSelectorPin, OUTPUT);
+    for (int i = 0; i < BOTTLES; i++) {
+        pinMode(BOTTLE_RELEASE_PINS[i], OUTPUT); // Set the solenoid valve pins as outputs
+        pinMode(BOTTLE_CLEAR_PINS[i], OUTPUT); // Set the clearing solenoid valve pins as outputs
+        pinMode(BOTTLE_CHECK_GLASS_PINS[i], INPUT); // Set the proximity sensor pins as inputs
+        _bottleQuantity[i] = 0;
+    }
+}
+
+boolean Bottle::newBottle(int bottle, int quantity){
+    if (bottle<=BOTTLES && quantity<=MAX_QUANTITY){
+        _bottleQuantity[bottle-1] = quantity;
+        return true;
+    }
+    else {
+        return false;
+    }
 
 }
 
-boolean Bottle::hasGlass(){
-    // Returns the value of the proximity sensor (true or false)
-    return digitalRead(_bottleSelectorPin);
+
+int Bottle::getQuantity(int bottle){
+    if(bottle <= BOTTLES){
+        return _bottleQuantity[bottle-1];
+    }
+    else {
+        return -1;
+    }
 }
 
-boolean Bottle::isEmpty(){
-    // Check if the quantity in the bottle is smaller than the smalles serving size
-    return ( _quantity < _servingSizes[0] );
+boolean Bottle::setQuantity(int bottle, int newQuantity){
+    if (bottle<=BOTTLES && newQuantity<=MAX_QUANTITY){
+        _bottleQuantity[bottle-1] = newQuantity;
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+boolean Bottle::checkForGlass(int bottle){
+    return digitalRead(BOTTLE_CHECK_GLASS_PINS[bottle-1]);
+}
+
+boolean Bottle::serve(int bottle, int servingSize){
+
+    if (bottle<=BOTTLES && _bottleQuantity[bottle-1]>=servingSize){
+        // TODO:Serving procedure
+
+        _bottleQuantity[bottle-1]-=servingSize;
+        return true;
+    }
+    else {
+        return false;
+    }
+
+}
+
+
+
+boolean Bottle::isEmpty(int bottle){
+    if (_bottleQuantity[bottle-1]<MINIMUM_SERVING_SIZE){
+        return true;
+    }
+    else {
+        return false;
+    }
 }
