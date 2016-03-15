@@ -6,6 +6,7 @@
 #include "Arduino.h"
 #include "MsTimer2.h"
 #include "OneWire.h"
+#include "EEPROMex.h"
 #include "CoolingChamber.h"
 #include "Config.h"
 
@@ -22,7 +23,7 @@ void CoolingChamber::init(){
     _controlPin = COOLING_CHAMBER_CONTROL_PIN;
     _tempSensorPin = TEMP_SENSOR_PIN;
     _tempControlDelta = TEMP_CONTROL_DELTA;
-    _tempTarget = TEMP_TARGET;
+    _tempTarget = EEPROM.readFloat(TEMP_TARGET_ADDRESS);
 
     currentTemp = getTempSensorData();
     pinMode(_controlPin, OUTPUT);
@@ -42,6 +43,7 @@ void CoolingChamber::stop(){
 
 void CoolingChamber::setTempTarger(float newTempTarget){
     _tempTarget = newTempTarget;
+    EEPROM.updateFloat(TEMP_TARGET_ADDRESS, _tempTarget);
 }
 
 float CoolingChamber::getTempTarget(){

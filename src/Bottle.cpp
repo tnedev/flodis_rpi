@@ -6,16 +6,16 @@
 
 #include "Arduino.h"
 #include "Bottle.h"
+#include "EEPROMex.h"
 
 int Bottle::_bottleQuantity[BOTTLES];
 
 void Bottle::init(){
-
+    EEPROM.readBlock<int>(BOTTLE_QUANTITY_ADDRESS, _bottleQuantity, BOTTLES); // Write the bottle quantities to memorie
     for (int i = 0; i < BOTTLES; i++) {
         pinMode(BOTTLE_RELEASE_PINS[i], OUTPUT); // Set the solenoid valve pins as outputs
         pinMode(BOTTLE_CLEAR_PINS[i], OUTPUT); // Set the clearing solenoid valve pins as outputs
         pinMode(BOTTLE_CHECK_GLASS_PINS[i], INPUT); // Set the proximity sensor pins as inputs
-        _bottleQuantity[i] = 0;
     }
 }
 
@@ -43,6 +43,7 @@ int Bottle::getQuantity(int bottle){
 boolean Bottle::setQuantity(int bottle, int newQuantity){
     if (bottle<=BOTTLES && newQuantity<=MAX_QUANTITY){
         _bottleQuantity[bottle-1] = newQuantity;
+        EEPROM.updateBlock<int>(BOTTLE_QUANTITY_ADDRESS, _bottleQuantity, BOTTLES);
         return true;
     }
     else {

@@ -29,5 +29,10 @@ const int CHECK_TEMP_CONTROL = 5000; //check the tempeature and apply control ev
 const float TEMP_TARGET = 23.00f;
 const float TEMP_CONTROL_DELTA = 0.5f;
 
+//EEPROM MEMORY Address allocation
+
+const int BOTTLE_QUANTITY_ADDRESS = 1;
+const int TEMP_TARGET_ADDRESS = 30;
+
 
 #endif
