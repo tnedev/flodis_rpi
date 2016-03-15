@@ -151,7 +151,7 @@ void handleData(){
     // check for glass
     else if(_data.startsWith(CHECK_GLASS_MSG)){
         // parse and validate based on integers between &
-        if (!parseCommandParams(_data, PREV_DRINK_MSG, commands, 10)) {
+        if (!parseCommandParams(_data, CHECK_GLASS_MSG, commands, 10)) {
             sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
             return;
         }
@@ -162,7 +162,7 @@ void handleData(){
             return;
         }
 
-        int hasGlass = 0; //TODO: check for glass
+        int hasGlass = 1; //TODO: check for glass
         sendGetMessageResp(CHECK_GLASS_MSG, hasGlass, bottle);
     }
     // unrecognized initial/function command
