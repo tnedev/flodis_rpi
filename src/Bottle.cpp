@@ -59,8 +59,14 @@ boolean Bottle::serve(int bottle, int servingSize){
 
     if (bottle<=BOTTLES && _bottleQuantity[bottle-1]>=servingSize){
         // TODO:Serving procedure
-
+        digitalWrite(BOTTLE_RELEASE_PINS[bottle-1], HIGH);
+        delay(servingSize*55);
+        digitalWrite(BOTTLE_RELEASE_PINS[bottle-1], LOW);
+        digitalWrite(BOTTLE_CLEAR_PINS[bottle-1], HIGH);
+        delay(500);
+        digitalWrite(BOTTLE_CLEAR_PINS[bottle-1], LOW);
         _bottleQuantity[bottle-1]-=servingSize;
+        EEPROM.updateBlock<int>(BOTTLE_QUANTITY_ADDRESS, _bottleQuantity, BOTTLES);
         return true;
     }
     else {

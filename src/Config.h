@@ -12,11 +12,11 @@ const int SLAVE_ADDRESS = 0x04;
 Arduino pinout configuration.
 */
 
-const int BOTTLES = 3; // Number of bottles
+const int BOTTLES = 1; // Number of bottles
 
-const int BOTTLE_RELEASE_PINS[BOTTLES] = {3,4,5}; // Pins controlling the solenoid valve for pushing out the liquid
-const int BOTTLE_CLEAR_PINS[BOTTLES] = {6,7,8}; // Pins controlling the solenoid valve for clearing the remaining liquid
-const int BOTTLE_CHECK_GLASS_PINS[BOTTLES] = {9,10,11}; // Pins connected with the proximity sensor underneeth each bottle
+const int BOTTLE_RELEASE_PINS[BOTTLES] = {8}; // Pins controlling the solenoid valve for pushing out the liquid
+const int BOTTLE_CLEAR_PINS[BOTTLES] = {7}; // Pins controlling the solenoid valve for clearing the remaining liquid
+const int BOTTLE_CHECK_GLASS_PINS[BOTTLES] = {10}; // Pins connected with the proximity sensor underneeth each bottle
 
 const int MINIMUM_SERVING_SIZE = 25; // the minimum serving size underneeth which the bottle is caunted as empty
 const int MAX_QUANTITY = 2000;
