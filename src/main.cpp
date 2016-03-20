@@ -80,78 +80,7 @@ void handleData(){
     else if (_data.startsWith(GET_TEMP_TARGET_MSG)){
         sendGetMessageResp(GET_TEMP_TARGET_MSG,int(CoolingChamber::getTempTarget()*100.0));
     }
-    // get quantity of a bottle
-    else if(_data.startsWith(GET_BOTTLE_QUANT_MSG)){
-        // parse and validate based on integers between &
-        if (!parseCommandParams(_data, GET_BOTTLE_QUANT_MSG, commands, 10)) {
-            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
-            return;
-        }
 
-        int bottle = commands[0];
-        if (bottle<=0 || bottle>BOTTLES){ // check for correct message
-            sendErrorMessage(ERR_BAD_REQUEST_VAL);
-            return;
-        }
-
-        int bottle_quantity = Bottle::getQuantity(bottle);
-        sendGetMessageResp(GET_BOTTLE_QUANT_MSG, bottle_quantity, bottle);
-    }
-    // set the quantity of a bottle
-    else if(_data.startsWith(SET_BOTTLE_QUANT_MSG)){
-        // parse and validate based on integers between &
-        if (!parseCommandParams(_data, SET_BOTTLE_QUANT_MSG, commands, 10)) {
-            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
-            return;
-        }
-
-        int bottle = commands[0]; // get the value of the first element
-        int quantity = commands[1]; // get the value of the second element§
-
-        if (bottle<=0 || bottle>BOTTLES || quantity<0){ // check if values are fine
-            sendErrorMessage(ERR_BAD_REQUEST_VAL);
-            return;
-        }
-
-        if (quantity>MAX_QUANTITY) { // cant sent this much quantity
-            sendErrorMessage(ERR_BAD_VALUE);
-            return;
-        }
-
-        if(Bottle::setQuantity(bottle, quantity)){
-            sendSetMessageResp(SET_BOTTLE_QUANT_MSG, quantity, bottle);
-        }
-        else {
-            sendErrorMessage(ERR_BAD_VALUE);
-        }
-    }
-    else if(_data.startsWith(NEW_BOTTLE_MSG)){
-        // parse and validate based on integers between &
-        if (!parseCommandParams(_data, NEW_BOTTLE_MSG, commands, 10)) {
-            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
-            return;
-        }
-
-        int bottle = commands[0]; // get the value of the first element
-        int quantity = commands[1]; // get the value of the second element§
-
-        if (bottle<=0 || bottle>BOTTLES || quantity<0){ // check if values are fine
-            sendErrorMessage(ERR_BAD_REQUEST_VAL);
-            return;
-        }
-
-        if (quantity>MAX_QUANTITY) { // cant sent this much quantity
-            sendErrorMessage(ERR_BAD_VALUE);
-            return;
-        }
-
-        if(Bottle::newBottle(bottle, quantity)){
-            sendSetMessageResp(NEW_BOTTLE_MSG, quantity, bottle);
-        }
-        else {
-            sendErrorMessage(ERR_BAD_VALUE);
-        }
-    }
     // get the pressure
     else if(_data.startsWith(GET_PRESSURE_MSG)){
         int pressure = 1230; //TODO: implement getting the real pressure
@@ -166,22 +95,13 @@ void handleData(){
         }
 
         int bottle = commands[0]; // get the value of the first element
-        int quantity = commands[1]; // get the value of the second element§
-        if (bottle<=0 || bottle>BOTTLES || quantity<=0){ // check the values
+        int servingTime = commands[1]; // get the value of the second element§
+        if (bottle<=0 || bottle>BOTTLES || servingTime<=0){ // check the values
             sendErrorMessage(ERR_BAD_REQUEST_VAL);
             return;
         }
-
-        if (quantity>MAX_QUANTITY) { // cant sent this much quantity
-            sendErrorMessage(ERR_BAD_VALUE);
-            return;
-        }
-        if(Bottle::serve(bottle, quantity)){
-            sendSetMessageResp(PREV_DRINK_MSG, quantity, bottle);
-        }
-        else {
-            sendErrorMessage(ERR_BAD_VALUE);
-        }
+        Bottle::serve(bottle, servingTime);
+        sendSetMessageResp(PREV_DRINK_MSG, servingTime, bottle);
     }
     // check for glass
     else if(_data.startsWith(CHECK_GLASS_MSG)){
@@ -198,7 +118,7 @@ void handleData(){
         }
 
         int hasGlass = Bottle::checkForGlass(bottle);
-        sendGetMessageResp(CHECK_GLASS_MSG, hasGlass, bottle);
+        sendGetMessageResp(CHECK_GLASS_MSG, bottle, hasGlass);
     }
     // unrecognized initial/function command
     else {

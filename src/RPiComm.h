@@ -22,11 +22,8 @@ const String SET_TEMP_TARGET_MSG = "stt:";
 const String GET_TEMP_TARGET_MSG = "gtt:";
 const String GET_TEMP_MSG = "gt:";
 const String CHECK_GLASS_MSG = "cfg:";
-const String GET_BOTTLE_QUANT_MSG = "gbq:";
-const String SET_BOTTLE_QUANT_MSG = "sbq:";
 const String GET_PRESSURE_MSG = "gp:";
 const String PREV_DRINK_MSG = "sd:";
-const String NEW_BOTTLE_MSG = "nb:";
 
 const int ERR_BAD_REQUEST_VAL = 201;
 const int ERR_NON_EMPTY_BUFF = 202; //Can't start on non-empty buffer
