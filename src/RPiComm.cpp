@@ -1,31 +1,31 @@
 #include "RPiComm.h"
 
 void sendErrorMessage(int value){
-    Serial.println("Err:" + String(value));
+    Serial.print("[Err:" + String(value) + "]");
 }
 
 void sendExcMessage(int value){
-    Serial.println("Exc:" + String(value));
+    Serial.print("[Exc:" + String(value) + "]");
 }
 
 void sendSetMessageResp(String set_message, int value){
-    Serial.println(set_message+String(value));
+    Serial.print("[" + set_message+String(value) + "]");
 }
 
 void sendSetMessageResp(String set_message, int value, int extrValue){
-    Serial.println(set_message + String(extrValue) + SPLIT_BYTE + String(value));
+    Serial.print("[" + set_message + String(value) + SPLIT_BYTE + String(extrValue) + "]");
 }
 
 void sendGetMessageResp(String get_message, int value){
-    Serial.println(get_message + String(value));
+    Serial.print("[" + get_message + String(value) + "]");
 }
 
 void sendGetMessageResp(String get_message, int value, int extrValue){
-    Serial.println(get_message+String(extrValue) + SPLIT_BYTE + String(value));
+    Serial.print("[" + get_message+String(value) + SPLIT_BYTE + String(extrValue) + "]");
 }
 
 void sendLogMessage(String message){
-    Serial.println("log:" + message);
+    Serial.print("[log:" + message + "]");
 }
 
 void initParsedCommandArray(int results[], int arr_length) {

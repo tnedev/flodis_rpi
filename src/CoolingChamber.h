@@ -17,6 +17,7 @@ public:
     static void startCooling();
     static void stopCooling();
     static void checkTemp();
+    static boolean isCooling();
     static float getTempSensorData();
 
     static float currentTemp;

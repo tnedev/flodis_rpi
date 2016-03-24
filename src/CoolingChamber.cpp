@@ -50,6 +50,10 @@ float CoolingChamber::getTempTarget(){
     return _tempTarget;
 }
 
+boolean CoolingChamber::isCooling(){
+    return _isCooling;
+}
+
 void CoolingChamber::checkTemp(){
     // Implement the control here
     currentTemp = getTempSensorData();
@@ -58,7 +62,6 @@ void CoolingChamber::checkTemp(){
         if(!_isCooling){
             _isCooling = true;
             _isResting = false;
-            Serial.println("Started Cooling Process");
         }
     }
     else if (currentTemp < ( _tempTarget -( _tempControlDelta/2))){
@@ -66,7 +69,6 @@ void CoolingChamber::checkTemp(){
         if(!_isResting){
             _isCooling = false;
             _isResting = true;
-            Serial.println("Stopped Cooling Process");
         }
     }
 }
@@ -81,7 +83,6 @@ void CoolingChamber::setTempControlDelta(float newTempControlDelta){
 
 float CoolingChamber::getTempSensorData(){
     //returns the temperature from one tempSensor18S20 in DEG Celsius
-    // TODO: Add error messages to MessageQ
 
     static OneWire _tempSensor(_tempSensorPin);
     byte data[12];
@@ -124,14 +125,11 @@ float CoolingChamber::getTempSensorData(){
     float tempRead = ((MSB << 8) | LSB); //using two's compliment
     float TemperatureSum = tempRead / 16;
 
-    if (TemperatureSum >-9.99f && TemperatureSum < 45.00f){
-        Serial.print("Temperature is: ");
-        Serial.println(TemperatureSum);
+    if (TemperatureSum > TEMP_MIN && TemperatureSum < TEMP_MAX){
         return TemperatureSum;
     }
     else {
         return ERROR_TEMP;
-        Serial.println("Temperature sensor problem");
     }
 }
 

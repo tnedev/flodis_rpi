@@ -27,6 +27,15 @@ const int CHECK_TEMP_CONTROL = 5000; //check the tempeature and apply control ev
 const float TEMP_TARGET = 23.00f;
 const float TEMP_CONTROL_DELTA = 0.5f;
 
+// Argument Ranges
+const int SERVING_TIME_MAX =  20000;
+const float TEMP_TARGET_MIN = 0.5; // Temp target under that temperature is not allowed
+const float TEMP_TARGET_MAX = 30.0; // Temp target over that temperature is not allowed
+const float TEMP_MIN = 0.1; // Minimum temperature allowed
+const float TEMP_MAX =  32; // Maximum temperature allowed
+const int PRESSURE_MIN = 100; // The minimum allowed pressure. Under this means the gas bottle is empty
+const int PRESSURE_MAX = 300; // The maximum allowed pressure. Over this means pressure problem
+
 //EEPROM MEMORY Address allocation
 
 const int TEMP_TARGET_ADDRESS = 30;

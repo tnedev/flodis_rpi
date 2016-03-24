@@ -13,7 +13,7 @@
 class Bottle{
 public:
     static void init();
-    static void serve(int bottle, int servingSize); // Serve a drink of size
+    static void serve(int bottle, int servingTime); // Serve a drink for that time
     static boolean drain(int bottle); // Drain the bottle
     static boolean clean(int bottle, int cleanTime); // Cleaning procedure
     static boolean checkForGlass(int bottle); // Checks if there is a glass to serve in

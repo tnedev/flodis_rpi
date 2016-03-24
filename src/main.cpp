@@ -15,7 +15,6 @@ void setup(){
     pinMode(13, OUTPUT);
     CoolingChamber::init();
     Bottle::init();
-    //CoolingChamber::start(); // Start the cooling process
 
     Serial.begin(115200);
 
@@ -25,16 +24,23 @@ void refreshTimer(){
     _lastTime = millis();
 }
 
+void startOperation(){
+    CoolingChamber::start();
+}
+
+void stopOperation(){
+    CoolingChamber::stop();
+}
 void timeoutCheck(){
     long timer = millis()-_lastTime;
     if(timer<0){
-        sendErrorMessage(ERR_TIME_OVERFLOW);
+        sendErrorMessage(ERR_ARDUINO_READ_TIMEOUT);
     }
     else if (timer>SERIAL_TIMEOUT && canWrite){
         canWrite = false;
         _data = "";
         Serial.flush();
-        sendErrorMessage(ERR_SERIAL_TIMEOUT);
+        sendErrorMessage(ERR_ARDUINO_READ_TIMEOUT);
     }
     else if(timer>SERIAL_REFRESH_TIMER){
         refreshTimer();
@@ -45,25 +51,27 @@ void handleData(){
     int commands[10];
 
     if (_data.startsWith(HEARTBEAT_MSG)){
-        sendSetMessageResp(HEARTBEAT_MSG, HEARTBEAT_VAL);
+        // TODO: C
+        if (CoolingChamber::isCooling() && CoolingChamber::getTempSensorData() == ERROR_TEMP){
+            sendErrorMessage(ERR_TEMP_SENSOR);
+        }
+        // TODO: Add pressure problems as well. 
+        else {
+            sendSetMessageResp(HEARTBEAT_MSG, HEARTBEAT_VAL);
+        }
     }
     // Set Temp Target
     else if(_data.startsWith(SET_TEMP_TARGET_MSG)){
         // parse and validate based on integers between &
         if (!parseCommandParams(_data, SET_TEMP_TARGET_MSG, commands, 10)) {
-            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+            sendErrorMessage(ERR_BAD_MESSAGE); // bad request
             return;
         }
 
         // the command was with a  valid structure
         int temp_target = commands[0];
-        if (temp_target <= 0) {
-            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
-            return;
-        }
-
-        if (temp_target<0 && temp_target>4000) {
-            sendErrorMessage(ERR_BAD_VALUE); // Wrong value range
+        if (temp_target< TEMP_TARGET_MIN && temp_target> TEMP_TARGET_MAX) {
+            sendErrorMessage(ERR_TEMP_TARGET); // Wrong value range
             return;
         }
 
@@ -73,8 +81,13 @@ void handleData(){
     }
     // get temperature
     else if (_data.startsWith(GET_TEMP_MSG)){
-        int temp = int(CoolingChamber::getTempSensorData()*100);
-        sendGetMessageResp(GET_TEMP_MSG,temp);
+        float temp = CoolingChamber::getTempTarget();
+        if (temp == ERROR_TEMP){
+            sendErrorMessage(ERR_TEMP_SENSOR);
+        }
+        else {
+            sendGetMessageResp(GET_TEMP_MSG,int(temp*100));
+        }
     }
     // get temperature target
     else if (_data.startsWith(GET_TEMP_TARGET_MSG)){
@@ -87,42 +100,59 @@ void handleData(){
         sendGetMessageResp(GET_PRESSURE_MSG, pressure);
     }
     // serve a drink
-    else if(_data.startsWith(PREV_DRINK_MSG)){
+    else if(_data.startsWith(SERVE_DRINK_MSG)){
         // parse and validate based on integers between &
-        if (!parseCommandParams(_data, PREV_DRINK_MSG, commands, 10)) {
-            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+        if (!parseCommandParams(_data, SERVE_DRINK_MSG, commands, 10)) {
+            sendErrorMessage(ERR_BAD_MESSAGE); // bad request
             return;
         }
 
         int bottle = commands[0]; // get the value of the first element
         int servingTime = commands[1]; // get the value of the second element§
         if (bottle<=0 || bottle>BOTTLES || servingTime<=0){ // check the values
-            sendErrorMessage(ERR_BAD_REQUEST_VAL);
+            sendErrorMessage(ERR_BOTTLE_NUMBER);
             return;
         }
+        sendSetMessageResp(SERVE_DRINK_MSG, bottle, servingTime);
         Bottle::serve(bottle, servingTime);
-        sendSetMessageResp(PREV_DRINK_MSG, servingTime, bottle);
+
     }
     // check for glass
     else if(_data.startsWith(CHECK_GLASS_MSG)){
         // parse and validate based on integers between &
         if (!parseCommandParams(_data, CHECK_GLASS_MSG, commands, 10)) {
-            sendErrorMessage(ERR_BAD_REQUEST_VAL); // bad request
+            sendErrorMessage(ERR_BAD_MESSAGE); // bad request
             return;
         }
 
         int bottle = commands[0]; // get the value of the first element
         if (bottle<=0 || bottle>BOTTLES){
-            sendErrorMessage(ERR_BAD_REQUEST_VAL);
+            sendErrorMessage(ERR_BOTTLE_NUMBER);
             return;
         }
 
         int hasGlass = Bottle::checkForGlass(bottle);
         sendGetMessageResp(CHECK_GLASS_MSG, bottle, hasGlass);
     }
+    else if (_data.startsWith(START_OPERATION_MSG)){
+        sendSetMessageResp(START_OPERATION_MSG, 1);
+        startOperation();
+    }
+    else if (_data.startsWith(STOP_OPERATION_MSG)){
+        sendSetMessageResp(STOP_OPERATION_MSG, 1);
+        stopOperation();
+    }
+    else if (_data.startsWith(START_COOLING_MSG)){
+        sendSetMessageResp(START_COOLING_MSG, 1);
+        CoolingChamber::start();
+    }
+    else if (_data.startsWith(STOP_COOLING_MSG)){
+        sendSetMessageResp(STOP_COOLING_MSG, 1);
+        CoolingChamber::stop();
+    }
     // unrecognized initial/function command
     else {
-        sendErrorMessage(ERR_BAD_REQUEST_VAL);
+        sendErrorMessage(ERR_BAD_MESSAGE);
     }
 
 }
