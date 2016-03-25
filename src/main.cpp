@@ -55,7 +55,7 @@ void handleData(){
         if (CoolingChamber::isCooling() && CoolingChamber::getTempSensorData() == ERROR_TEMP){
             sendErrorMessage(ERR_TEMP_SENSOR);
         }
-        // TODO: Add pressure problems as well. 
+        // TODO: Add pressure problems as well.
         else {
             sendSetMessageResp(HEARTBEAT_MSG, HEARTBEAT_VAL);
         }
@@ -69,15 +69,16 @@ void handleData(){
         }
 
         // the command was with a  valid structure
-        int temp_target = commands[0];
-        if (temp_target< TEMP_TARGET_MIN && temp_target> TEMP_TARGET_MAX) {
+        int temp_target_int = commands[0];
+        float  temp_target = temp_target_int/100.0;
+        if (temp_target<= TEMP_TARGET_MIN || temp_target>= TEMP_TARGET_MAX) {
             sendErrorMessage(ERR_TEMP_TARGET); // Wrong value range
             return;
         }
 
         // if the value is fine, set the new value and send response
-        CoolingChamber::setTempTarger(temp_target/100.0);
-        sendSetMessageResp(SET_TEMP_TARGET_MSG, int (temp_target));
+        CoolingChamber::setTempTarger(temp_target);
+        sendSetMessageResp(SET_TEMP_TARGET_MSG, temp_target_int);
     }
     // get temperature
     else if (_data.startsWith(GET_TEMP_MSG)){
@@ -109,8 +110,12 @@ void handleData(){
 
         int bottle = commands[0]; // get the value of the first element
         int servingTime = commands[1]; // get the value of the second element§
-        if (bottle<=0 || bottle>BOTTLES || servingTime<=0){ // check the values
+        if (bottle<=0 || bottle>BOTTLES){ // check the values
             sendErrorMessage(ERR_BOTTLE_NUMBER);
+            return;
+        }
+        else if(servingTime<=0 || servingTime >=SERVING_TIME_MAX){
+            sendErrorMessage(ERR_SERVING_TIME);
             return;
         }
         sendSetMessageResp(SERVE_DRINK_MSG, bottle, servingTime);
