@@ -82,7 +82,7 @@ void handleData(){
     }
     // get temperature
     else if (_data.startsWith(GET_TEMP_MSG)){
-        float temp = CoolingChamber::getTempTarget();
+        float temp = CoolingChamber::getTempSensorData();
         if (temp == ERROR_TEMP){
             sendErrorMessage(ERR_TEMP_SENSOR);
         }
