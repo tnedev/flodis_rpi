@@ -9,11 +9,21 @@
 #include "EEPROMex.h"
 #include "RPiComm.h"
 
+boolean Bottle::_isFlushing[BOTTLES];
+boolean Bottle::_isServing[BOTTLES];
+int Bottle::_servingTime[BOTTLES];
+unsigned long Bottle::_bottleTimer[BOTTLES];
+
 void Bottle::init(){
+
     for (int i = 0; i < BOTTLES; i++) {
         pinMode(BOTTLE_RELEASE_PINS[i], OUTPUT); // Set the solenoid valve pins as outputs
         pinMode(BOTTLE_CLEAR_PINS[i], OUTPUT); // Set the clearing solenoid valve pins as outputs
         pinMode(BOTTLE_CHECK_GLASS_PINS[i], INPUT); // Set the proximity sensor pins as inputs
+        Bottle::_isFlushing[i] = 0;
+        Bottle::_isServing[i] = 0;
+        Bottle::_servingTime[i] = 0;
+        _bottleTimer[i] = 0;
     }
 }
 
@@ -23,10 +33,29 @@ boolean Bottle::checkForGlass(int bottle){
 
 void Bottle::serve(int bottle, int servingTime){
 
-            digitalWrite(BOTTLE_RELEASE_PINS[bottle-1], HIGH);
-            delay(servingTime);
-            digitalWrite(BOTTLE_RELEASE_PINS[bottle-1], LOW);
-            digitalWrite(BOTTLE_CLEAR_PINS[bottle-1], HIGH);
-            delay(300); //clear the remaining liquid
-            digitalWrite(BOTTLE_CLEAR_PINS[bottle-1], LOW);
+        _servingTime[bottle-1] = servingTime;
+        _isServing[bottle-1] = true;
+        _bottleTimer[bottle-1] = millis();
+}
+
+void Bottle::checkServingTime(){
+    for (int i = 0; i < BOTTLES; i++) {
+
+        if(_isServing[i]){
+            digitalWrite(BOTTLE_RELEASE_PINS[i], HIGH);
+            if(millis() - _bottleTimer[i] >= _servingTime[i]){
+                digitalWrite(BOTTLE_RELEASE_PINS[i], LOW);
+                _isServing[i] = false;
+                _isFlushing[i] = true;
+                _bottleTimer[i] = millis();
+            }
+        }
+        if(_isFlushing[i]){
+            digitalWrite(BOTTLE_CLEAR_PINS[i], HIGH);
+            if (millis() - _bottleTimer[i] >= BOTTLE_FLUSH_TIME){
+                digitalWrite(BOTTLE_CLEAR_PINS[i], LOW);
+                _isFlushing[i] = false;
+            }
+        }
+    }
 }

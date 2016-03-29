@@ -13,7 +13,7 @@ Arduino pinout configuration.
 */
 
 const int BOTTLES = 1; // Number of bottles
-
+const int BOTTLE_FLUSH_TIME = 300; 
 const int BOTTLE_RELEASE_PINS[BOTTLES] = {8}; // Pins controlling the solenoid valve for pushing out the liquid
 const int BOTTLE_CLEAR_PINS[BOTTLES] = {7}; // Pins controlling the solenoid valve for clearing the remaining liquid
 const int BOTTLE_CHECK_GLASS_PINS[BOTTLES] = {6}; // Pins connected with the proximity sensor underneeth each bottle

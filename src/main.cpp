@@ -203,5 +203,6 @@ void serialEvent(){
 void loop(){
 
     timeoutCheck(); // Clean message data if timeout
+    Bottle::checkServingTime();
 
 }
