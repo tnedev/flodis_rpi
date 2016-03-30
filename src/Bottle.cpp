@@ -33,9 +33,13 @@ boolean Bottle::checkForGlass(int bottle){
 
 void Bottle::serve(int bottle, int servingTime){
 
-        _servingTime[bottle-1] = servingTime;
-        _isServing[bottle-1] = true;
-        _bottleTimer[bottle-1] = millis();
+    _servingTime[bottle-1] = servingTime;
+    _isServing[bottle-1] = true;
+    _bottleTimer[bottle-1] = millis();
+}
+
+boolean Bottle::isServing(int bottle){
+    return _isServing[bottle-1];
 }
 
 void Bottle::checkServingTime(){

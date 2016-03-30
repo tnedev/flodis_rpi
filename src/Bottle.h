@@ -18,6 +18,7 @@ public:
     static boolean clean(int bottle, int cleanTime); // Cleaning procedure
     static boolean checkForGlass(int bottle); // Checks if there is a glass to serve in
     static void checkServingTime();
+    static boolean isServing(int bottle);
     static boolean _isServing[BOTTLES];
     static boolean _isFlushing[BOTTLES];
     static int _servingTime[BOTTLES];

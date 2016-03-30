@@ -47,6 +47,7 @@ const int ERR_BAD_VALUE = 31; // When an argument is not the right format exampl
 const int ERR_BOTTLE_NUMBER = 32; // Wrong bottle number; Out of the range of the declared bottles
 const int ERR_SERVING_TIME = 33; // Serving time was wrong
 const int ERR_TEMP_TARGET = 34;
+const int ERR_BOTTLE_BUSY = 35; 
 
 // ArduinoSensorError
 const int ERR_TEMP_SENSOR = 15; // There is something wrong with the sensor

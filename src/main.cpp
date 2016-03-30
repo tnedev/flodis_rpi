@@ -118,6 +118,10 @@ void handleData(){
             sendErrorMessage(ERR_SERVING_TIME);
             return;
         }
+        if (Bottle::isServing(bottle)){
+            sendErrorMessage(ERR_BOTTLE_BUSY);
+            return;
+        }
         sendSetMessageResp(SERVE_DRINK_MSG, bottle, servingTime);
         Bottle::serve(bottle, servingTime);
 
